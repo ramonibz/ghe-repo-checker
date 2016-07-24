@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"os"
 	"ghe-repo-checker/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"strings"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"ghe-repo-checker/cripto"
 )
 
 func main() {
@@ -51,8 +52,10 @@ func main() {
 
 
 func collectAllRepos()map[string]github.Repository {
+
+
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GHE_ACCESS_TOKEN")},
+		&oauth2.Token{AccessToken: getAccessToken()}, //os.Getenv("GHE_ACCESS_TOKEN")},
 	)
 	tc := oauth2.NewClient(oauth2.NoContext, ts)
 
@@ -82,6 +85,14 @@ func collectAllRepos()map[string]github.Repository {
 	}
 
 	return m
+}
+
+func getAccessToken() string {
+	encryptedToken := aws.GetAccessTokenFromDynamo()
+
+	accessToken := cripto.Decrypt(encryptedToken)
+
+	return accessToken
 }
 
 func getDeletedRepos(gheRepos map[string]github.Repository, dbRepos map[string]map[string]*dynamodb.AttributeValue) []string{

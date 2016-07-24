@@ -66,6 +66,26 @@ func ScanTable (dynamoDbTable string) map[string]map[string]*dynamodb.AttributeV
 	return m
 }
 
+func GetAccessTokenFromDynamo() string {
+	svc := dynamodb.New(session.New(&aws.Config{Region: aws.String("eu-west-1")}))
+	 getItemInput := &dynamodb.GetItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"key" : {
+				S: aws.String("AccessToken"),
+			},
+		},
+		TableName: aws.String("credentials"),
+	}
+
+	item, err := svc.GetItem(getItemInput)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return *item.Item["value"].S
+}
+
 func CreateItems(items map[string]github.Repository) {
 
 	svc := dynamodb.New(session.New(&aws.Config{Region: aws.String("eu-west-1")}))
